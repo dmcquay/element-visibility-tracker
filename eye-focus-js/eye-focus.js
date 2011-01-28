@@ -55,11 +55,11 @@ EyeFocus.prototype.detectVisibleElements = function() {
 
 EyeFocus.prototype.isElementVisible = function(elem) {
 	var elemTop = this.jQuery(elem).offset().top;
-  var elemBottom = elemTop + this.jQuery(elem).height();
-  
-  var docViewTop = this.jQuery(window).scrollTop();
-  var docViewBottom = docViewTop + this.jQuery(window).height();
-  
-  return ((elemBottom >= docViewTop) && (elemTop <= docViewBottom)
-    && (elemBottom <= docViewBottom) &&  (elemTop >= docViewTop) );
+	var elemBottom = elemTop + this.jQuery(elem).height();
+
+	var docViewTop = this.jQuery(window).scrollTop();
+	var docViewBottom = docViewTop + this.jQuery(window).height();
+
+	return ((elemBottom >= docViewTop) && (elemTop <= docViewBottom)
+		&& (elemBottom <= docViewBottom) &&  (elemTop >= docViewTop) );
 };
