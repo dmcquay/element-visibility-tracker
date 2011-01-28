@@ -3,10 +3,10 @@
  * elements. When an element becomes visible, the "visible" event is triggered on that
  * element. Here are the events triggered:
  *
- *		visible:				when the element is visible
- *		not-visible:		when the element is not visible
- *		top-visible:		the visible element that is highest on the page
- *		bottom-visible:	the visible element that is lowest on the page
+ *	visible:		when the element is visible
+ *	not-visible:	when the element is not visible
+ *	top-visible:	the visible element that is highest on the page
+ *	bottom-visible:	the visible element that is lowest on the page
  *
  * All events are triggered at the time of the document's scroll event. Currently, events
  * are called every time, not just deltas (e.g. if an element is already visible, the visible
