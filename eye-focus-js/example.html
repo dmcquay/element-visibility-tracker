@@ -1,0 +1,38 @@
+<html>
+<head>
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.4.4.js"></script>
+<script type="text/javascript" src="eye-focus.js"></script>
+<script type="text/javascript">
+jQuery(document).ready(function(){
+	var pEls = document.getElementsByTagName('p');
+	new EyeFocus(pEls);
+	jQuery(pEls).bind('not-visible', function(evt) {
+		jQuery(evt.target).removeClass('active');
+		jQuery(evt.target).removeClass('mainactive');
+	});
+	jQuery(pEls).bind('visible', function(evt) {
+		jQuery(evt.target).addClass('active');
+	});
+	jQuery(pEls).bind('bottom-visible', function(evt) {
+		jQuery(evt.target).addClass('mainactive');
+	});
+});
+</script>
+<style type="text/css">
+p { width: 300px; height: 250px; border: 1px solid black; }
+p.active { border: 1px solid red; }
+p.mainactive { border: 2px solid blue; }
+</style>
+</head>
+<body>
+	<p>1</p>
+	<p>2</p>
+	<p>3</p>
+	<p>4</p>
+	<p>5</p>
+	<p>6</p>
+	<p>7</p>
+	<p>8</p>
+	<p>9</p>
+</body>
+</html>
