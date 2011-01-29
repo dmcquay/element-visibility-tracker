@@ -36,14 +36,31 @@ EyeFocus = function(elements) {
 };
 
 EyeFocus.prototype.detectVisibleElements = function() {
+	this.isElementVisibleCallCount = 0;
 	this.visibleElements = [];
-	for (var i = 0; i < this.elements.length; i++) {
-		if (this.isElementVisible(this.elements[i])) {
+	var startIdx = 0;
+	if (this.firstVisibleElementIdx !== null && this.firstVisibleElementIdx > 0) {
+		startIdx = this.firstVisibleElementIdx - 1;
+	} else {
+		console.log('warning! starting at index 0.');
+	}
+	this.firstVisibleElementIdx = null;
+	var callCount = 0;
+	var stopChecking = false;
+	for (var i = startIdx; i < this.elements.length; i++) {
+		if (!stopChecking && this.isElementVisible(this.elements[i])) {
+			if (this.firstVisibleElementIdx == null) {
+				this.firstVisibleElementIdx = i;
+			}
 			this.visibleElements.push(this.elements[i]);
 		} else {
 			this.jQuery(this.elements).trigger('not-visible');
+			if (!stopChecking && this.visibleElements.length > 0) {
+				stopChecking = true;
+			}
 		}
 	}
+	//console.log('Call Count: ' + this.isElementVisibleCallCount);
 	if (this.visibleElements.length > 0) {
 		for (var i = 0; i < this.visibleElements.length; i++) {
 			this.jQuery(this.visibleElements[i]).trigger('visible');
@@ -54,12 +71,17 @@ EyeFocus.prototype.detectVisibleElements = function() {
 };
 
 EyeFocus.prototype.isElementVisible = function(elem) {
+	this.isElementVisibleCallCount++;
 	var elemTop = this.jQuery(elem).offset().top;
-	var elemBottom = elemTop + this.jQuery(elem).height();
-
 	var docViewTop = this.jQuery(window).scrollTop();
 	var docViewBottom = docViewTop + this.jQuery(window).height();
+	
+	if (docViewBottom < elemTop) {
+		return false;
+	}
+	
+	var elemBottom = elemTop + this.jQuery(elem).height();
 
 	return ((elemBottom >= docViewTop) && (elemTop <= docViewBottom)
-		&& (elemBottom <= docViewBottom) &&  (elemTop >= docViewTop) );
+		&& (elemBottom <= docViewBottom) &&  (elemTop >= docViewTop));
 };
