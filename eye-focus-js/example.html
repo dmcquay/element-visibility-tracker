@@ -7,25 +7,33 @@ jQuery(document).ready(function(){
 	var pEls = document.getElementsByTagName('p');
 	jQuery(pEls).bind('visibility-status-change', function(evt, visibilityStatus) {
 		if (visibilityStatus & EyeFocus.STATUS_VISIBLE) {
-			if (visibilityStatus & EyeFocus.STATUS_BOTTOM_VISIBLE) {
-				jQuery(evt.target).removeClass('active');
-				jQuery(evt.target).addClass('mainactive');
+			if (visibilityStatus & EyeFocus.STATUS_TOP_VISIBLE) {
+				jQuery(evt.target).removeClass('visible');
+				jQuery(evt.target).addClass('visibleTop');
+				jQuery(evt.target).removeClass('visibleBottom');
+			} else if (visibilityStatus & EyeFocus.STATUS_BOTTOM_VISIBLE) {
+				jQuery(evt.target).removeClass('visible');
+				jQuery(evt.target).removeClass('visibleTop');
+				jQuery(evt.target).addClass('visibleBottom');
 			} else {
-				jQuery(evt.target).removeClass('mainactive');
-				jQuery(evt.target).addClass('active');
+				jQuery(evt.target).addClass('visible');
+				jQuery(evt.target).removeClass('visibleTop');
+				jQuery(evt.target).removeClass('visibleBottom');
 			}
 		} else {
-			jQuery(evt.target).removeClass('active');
-			jQuery(evt.target).removeClass('mainactive');
+			jQuery(evt.target).removeClass('visible');
+			jQuery(evt.target).removeClass('visibleTop');
+			jQuery(evt.target).removeClass('visibleBottom');
 		}
 	});
 	new EyeFocus(pEls);
 });
 </script>
 <style type="text/css">
-p { width: 300px; height: 100px; border: 1px solid black; }
-p.active { border: 1px solid red; }
-p.mainactive { border: 2px solid blue; }
+p { width: 300px; height: 50px; border: 1px solid black; }
+p.visible { border: 1px solid red; }
+p.visibleBottom { border: 2px solid blue; }
+p.visibleTop { border: 2px solid green; }
 </style>
 </head>
 <body>
