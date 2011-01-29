@@ -77,9 +77,15 @@ EyeFocus.prototype.detectElementStatuses = function() {
 				this.firstVisibleElementIdx = i;
 				this.elementStatuses[i] |= EyeFocus.STATUS_TOP_VISIBLE;
 			}
+			
+			//normally we catch the bottom visible element in the else
+			//clause below, but if it is the very last element, then it
+			//won't get caught there.
+			if (i === this.elements.length - 1) {
+				this.elementStatuses[i] |= EyeFocus.STATUS_BOTTOM_VISIBLE;
+			}
 		} else {
 			this.elementStatuses[i] = EyeFocus.STATUS_NOT_VISIBLE;
-			//this.jQuery(this.elements).trigger('not-visible');
 			if (this.visibleElements.length > 0) {
 				this.elementStatuses[i-1] |= EyeFocus.STATUS_BOTTOM_VISIBLE;
 				break;
@@ -102,17 +108,10 @@ EyeFocus.prototype.detectElementStatuses = function() {
 };
 
 EyeFocus.prototype.isElementVisible = function(elem) {
-	this.isElementVisibleCallCount++;
 	var elemTop = this.jQuery(elem).offset().top;
+	var elemBottom = elemTop + this.jQuery(elem).height();
 	var docViewTop = this.jQuery(window).scrollTop();
 	var docViewBottom = docViewTop + this.jQuery(window).height();
-	
-	if (docViewBottom < elemTop) {
-		return false;
-	}
-	
-	var elemBottom = elemTop + this.jQuery(elem).height();
-
 	return ((elemBottom >= docViewTop) && (elemTop <= docViewBottom)
 		&& (elemBottom <= docViewBottom) &&  (elemTop >= docViewTop));
 };
