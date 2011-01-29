@@ -28,31 +28,22 @@ EyeFocus = function(elements) {
 	}
 	this.jQuery = jQuery;
 	this.elements = elements;
-	this.visibleElements = [];
-	this.elementStatuses = {};
-	this.prevElementStatuses = {};
+	this.initElementStatuses();
 	this.detectElementStatuses();
 	this.jQuery(document).scroll(function() {
 		self.detectElementStatuses();
 	});
 };
 
-EyeFocus.STATUS_VISIBLE			= 1 << 1;
-EyeFocus.STATUS_TOP_VISIBLE		= 1 << 3;
-EyeFocus.STATUS_BOTTOM_VISIBLE	= 1 << 4;
-
 EyeFocus.prototype.initElementStatuses = function() {
-	this.elementStatuses = {};
-	this.newElementStatuses = {};
+	this.visibilityStatuses = {};
 	for (var i = 0; i < this.elements.length; i++) {
-		this.elementStatuses[i] = EyeFocus.STATUS_UNKNOWN;
-		this.newElementStatuses[i] = new EyeFocus.VisibilityStatus();
+		this.visibilityStatuses[i] = new EyeFocus.VisibilityStatus();
 	}
 };
 
 EyeFocus.prototype.detectElementStatuses = function() {
-	this.prevElementStatuses = this.elementStatuses;
-	this.newPrevElementStatuses = this.newElementStatuses;
+	this.prevVisibilityStatuses = this.visibilityStatuses;
 	this.initElementStatuses();
 	this.isElementVisibleCallCount = 0;
 	this.visibleElements = [];
@@ -71,27 +62,23 @@ EyeFocus.prototype.detectElementStatuses = function() {
 			//this is used to determine top and bottom visible elements later
 			//and also to track if any visible elements have been found
 			this.visibleElements.push(this.elements[i]);
-			this.elementStatuses[i] = EyeFocus.STATUS_VISIBLE;
-			this.newElementStatuses[i].isVisible(true);
+			this.visibilityStatuses[i].isVisible(true);
 
 			//this is used to determine a more efficient start index
 			if (this.firstVisibleElementIdx == null) {
 				this.firstVisibleElementIdx = i;
-				this.elementStatuses[i] |= EyeFocus.STATUS_TOP_VISIBLE;
-				this.newElementStatuses[i].isHighestVisible(true);
+				this.visibilityStatuses[i].isHighestVisible(true);
 			}
 			
 			//normally we catch the bottom visible element in the else
 			//clause below, but if it is the very last element, then it
 			//won't get caught there.
 			if (i === this.elements.length - 1) {
-				this.elementStatuses[i] |= EyeFocus.STATUS_BOTTOM_VISIBLE;
-				this.newElementStatuses[i].isLowestVisible(true);
+				this.visibilityStatuses[i].isLowestVisible(true);
 			}
 		} else {
 			if (this.visibleElements.length > 0) {
-				this.elementStatuses[i-1] |= EyeFocus.STATUS_BOTTOM_VISIBLE;
-				this.newElementStatuses[i-1].isLowestVisible(true);
+				this.visibilityStatuses[i-1].isLowestVisible(true);
 				break;
 			}
 		}
@@ -100,8 +87,8 @@ EyeFocus.prototype.detectElementStatuses = function() {
 	//trigger events for any changes.
 	var cnt = 0;
 	for (var i = 0; i < this.elements.length; i++) {
-		if (this.elementStatuses[i] !== this.prevElementStatuses[i]) {
-			this.jQuery(this.elements[i]).trigger('visibility-status-change', [this.elementStatuses[i], this.newElementStatuses[i]]);
+		if (!this.visibilityStatuses[i].equals(this.prevVisibilityStatuses[i])) {
+			this.jQuery(this.elements[i]).trigger('visibility-status-change', [this.visibilityStatuses[i]]);
 		}
 	}
 };
@@ -164,4 +151,8 @@ EyeFocus.VisibilityStatus.prototype.checkOrSetStatus = function(value, status) {
 		else { this._statusCode ^= status; }
 	}
 	return this._statusCode & status;
+};
+
+EyeFocus.VisibilityStatus.prototype.equals = function(otherStatus) {
+	return this._statusCode === otherStatus._statusCode;
 };
