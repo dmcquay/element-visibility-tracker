@@ -58,7 +58,9 @@ EyeFocus.prototype.detectElementStatuses = function() {
 	//check for changed statuses
 	var stopChecking = false;
 	for (var i = startIdx; i < this.elements.length; i++) {
-		if (!stopChecking && this.isElementVisible(this.elements[i])) {
+		this.setInitialVisibilityStatus(this.elements[i], this.visibilityStatuses[i]);
+		if (!stopChecking && this.visibilityStatuses[i].isVisible()) {
+			
 			//this is used to determine top and bottom visible elements later
 			//and also to track if any visible elements have been found
 			this.visibleElements.push(this.elements[i]);
@@ -93,13 +95,19 @@ EyeFocus.prototype.detectElementStatuses = function() {
 	}
 };
 
-EyeFocus.prototype.isElementVisible = function(elem) {
+EyeFocus.prototype.setInitialVisibilityStatus = function(elem, visibilityStatus) {
 	var elemTop = this.jQuery(elem).offset().top;
 	var elemBottom = elemTop + this.jQuery(elem).height();
 	var docViewTop = this.jQuery(window).scrollTop();
 	var docViewBottom = docViewTop + this.jQuery(window).height();
-	return ((elemBottom >= docViewTop) && (elemTop <= docViewBottom)
+	
+	var isVisible = ((elemBottom >= docViewTop) && (elemTop <= docViewBottom)
 		&& (elemBottom <= docViewBottom) &&  (elemTop >= docViewTop));
+	if (isVisible) visibilityStatus.isVisible(true);
+	
+	
+	var isPartiallyVisible = elemBottom >= docViewTop || elemTop <= docViewBottom;
+	visibilityStatus.isPartiallyVisible(isPartiallyVisible);
 };
 
 
@@ -108,7 +116,6 @@ EyeFocus.prototype.isElementVisible = function(elem) {
 
 EyeFocus.VisibilityStatus = function() {};
 
-EyeFocus.VisibilityStatus.STATUS_UNKNOWN									= 1 << 0;
 EyeFocus.VisibilityStatus.STATUS_VISIBLE									= 1 << 1;
 EyeFocus.VisibilityStatus.STATUS_HIGHEST_VISIBLE							= 1 << 2;
 EyeFocus.VisibilityStatus.STATUS_LOWEST_VISIBLE								= 1 << 3;
@@ -150,7 +157,7 @@ EyeFocus.VisibilityStatus.prototype.checkOrSetStatus = function(value, status) {
 		if (value) { this._statusCode |= status; }
 		else { this._statusCode ^= status; }
 	}
-	return this._statusCode & status;
+	return Boolean(this._statusCode & status);
 };
 
 EyeFocus.VisibilityStatus.prototype.equals = function(otherStatus) {
