@@ -37,22 +37,23 @@ EyeFocus = function(elements) {
 	});
 };
 
-EyeFocus.STATUS_UNKNOWN			= 1 << 0;
 EyeFocus.STATUS_VISIBLE			= 1 << 1;
-EyeFocus.STATUS_NOT_VISIBLE		= 1 << 2;
 EyeFocus.STATUS_TOP_VISIBLE		= 1 << 3;
 EyeFocus.STATUS_BOTTOM_VISIBLE	= 1 << 4;
 
 EyeFocus.prototype.initElementStatuses = function() {
 	this.elementStatuses = {};
+	this.newElementStatuses = {};
 	for (var i = 0; i < this.elements.length; i++) {
 		this.elementStatuses[i] = EyeFocus.STATUS_UNKNOWN;
+		this.newElementStatuses[i] = new EyeFocus.VisibilityStatus();
 	}
 };
 
 EyeFocus.prototype.detectElementStatuses = function() {
 	this.prevElementStatuses = this.elementStatuses;
-	this.elementStatuses = {};
+	this.newPrevElementStatuses = this.newElementStatuses;
+	this.initElementStatuses();
 	this.isElementVisibleCallCount = 0;
 	this.visibleElements = [];
 	
@@ -71,11 +72,13 @@ EyeFocus.prototype.detectElementStatuses = function() {
 			//and also to track if any visible elements have been found
 			this.visibleElements.push(this.elements[i]);
 			this.elementStatuses[i] = EyeFocus.STATUS_VISIBLE;
+			this.newElementStatuses[i].isVisible(true);
 
 			//this is used to determine a more efficient start index
 			if (this.firstVisibleElementIdx == null) {
 				this.firstVisibleElementIdx = i;
 				this.elementStatuses[i] |= EyeFocus.STATUS_TOP_VISIBLE;
+				this.newElementStatuses[i].isHighestVisible(true);
 			}
 			
 			//normally we catch the bottom visible element in the else
@@ -83,26 +86,22 @@ EyeFocus.prototype.detectElementStatuses = function() {
 			//won't get caught there.
 			if (i === this.elements.length - 1) {
 				this.elementStatuses[i] |= EyeFocus.STATUS_BOTTOM_VISIBLE;
+				this.newElementStatuses[i].isLowestVisible(true);
 			}
 		} else {
-			this.elementStatuses[i] = EyeFocus.STATUS_NOT_VISIBLE;
 			if (this.visibleElements.length > 0) {
 				this.elementStatuses[i-1] |= EyeFocus.STATUS_BOTTOM_VISIBLE;
+				this.newElementStatuses[i-1].isLowestVisible(true);
 				break;
 			}
 		}
 	}
 	
-	//anything that doesn't have a status, set status to NOT_VISIBLE.
-	//also, trigger events for any changes.
+	//trigger events for any changes.
 	var cnt = 0;
 	for (var i = 0; i < this.elements.length; i++) {
-		if (typeof(this.elementStatuses[i]) === 'undefined') {
-			this.elementStatuses[i] = EyeFocus.STATUS_NOT_VISIBLE;
-			cnt++;
-		}
 		if (this.elementStatuses[i] !== this.prevElementStatuses[i]) {
-			this.jQuery(this.elements[i]).trigger('visibility-status-change', [this.elementStatuses[i]]);
+			this.jQuery(this.elements[i]).trigger('visibility-status-change', [this.elementStatuses[i], this.newElementStatuses[i]]);
 		}
 	}
 };
@@ -114,4 +113,55 @@ EyeFocus.prototype.isElementVisible = function(elem) {
 	var docViewBottom = docViewTop + this.jQuery(window).height();
 	return ((elemBottom >= docViewTop) && (elemTop <= docViewBottom)
 		&& (elemBottom <= docViewBottom) &&  (elemTop >= docViewTop));
+};
+
+
+
+
+
+EyeFocus.VisibilityStatus = function() {};
+
+EyeFocus.VisibilityStatus.STATUS_UNKNOWN									= 1 << 0;
+EyeFocus.VisibilityStatus.STATUS_VISIBLE									= 1 << 1;
+EyeFocus.VisibilityStatus.STATUS_HIGHEST_VISIBLE							= 1 << 2;
+EyeFocus.VisibilityStatus.STATUS_LOWEST_VISIBLE								= 1 << 3;
+EyeFocus.VisibilityStatus.STATUS_PARTIALLY_VISIBLE							= 1 << 4;
+EyeFocus.VisibilityStatus.STATUS_HIGHEST_PARTIALLY_VISIBLE					= 1 << 5;
+EyeFocus.VisibilityStatus.STATUS_HIGHEST_PARTIALLY_VISIBLE					= 1 << 6;
+EyeFocus.VisibilityStatus.STATUS_PARTIALLY_VISIBLE_WITH_NO_VISIBLE_SIBLINGS	= 1 << 7;
+
+EyeFocus.VisibilityStatus.prototype.isVisible = function(value) {
+	return this.checkOrSetStatus(value, EyeFocus.VisibilityStatus.STATUS_VISIBLE);
+};
+
+EyeFocus.VisibilityStatus.prototype.isHighestVisible = function(value) {
+	return this.checkOrSetStatus(value, EyeFocus.VisibilityStatus.STATUS_HIGHEST_VISIBLE);
+};
+
+EyeFocus.VisibilityStatus.prototype.isLowestVisible = function(value) {
+	return this.checkOrSetStatus(value, EyeFocus.VisibilityStatus.STATUS_LOWEST_VISIBLE);
+};
+
+EyeFocus.VisibilityStatus.prototype.isPartiallyVisible = function(value) {
+	return this.checkOrSetStatus(value, EyeFocus.VisibilityStatus.STATUS_PARTIALLY_VISIBLE);
+};
+
+EyeFocus.VisibilityStatus.prototype.isHighestPartiallyVisible = function(value) {
+	return this.checkOrSetStatus(value, EyeFocus.VisibilityStatus.STATUS_HIGHEST_PARTIALLY_VISIBLE);
+};
+
+EyeFocus.VisibilityStatus.prototype.isLowestPartiallyVisible = function(value) {
+	return this.checkOrSetStatus(value, EyeFocus.VisibilityStatus.STATUS_LOWEST_PARTIALLY_VISIBLE);
+};
+
+EyeFocus.VisibilityStatus.prototype.isPartiallyVisibleWithNoVisibleSiblings = function(value) {
+	return this.checkOrSetStatus(value, EyeFocus.VisibilityStatus.STATUS_PARTIALLY_VISIBLE_WITH_NO_VISIBLE_SIBLINGS);
+};
+
+EyeFocus.VisibilityStatus.prototype.checkOrSetStatus = function(value, status) {
+	if (typeof(value) !== 'undefined') {
+		if (value) { this._statusCode |= status; }
+		else { this._statusCode ^= status; }
+	}
+	return this._statusCode & status;
 };
