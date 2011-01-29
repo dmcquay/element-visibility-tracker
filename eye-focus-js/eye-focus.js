@@ -29,44 +29,75 @@ EyeFocus = function(elements) {
 	this.jQuery = jQuery;
 	this.elements = elements;
 	this.visibleElements = [];
-	this.detectVisibleElements();
+	this.elementStatuses = {};
+	this.prevElementStatuses = {};
+	this.detectElementStatuses();
 	this.jQuery(document).scroll(function() {
-		self.detectVisibleElements();
+		self.detectElementStatuses();
 	});
 };
 
-EyeFocus.prototype.detectVisibleElements = function() {
+EyeFocus.STATUS_UNKNOWN			= 1 << 0;
+EyeFocus.STATUS_VISIBLE			= 1 << 1;
+EyeFocus.STATUS_NOT_VISIBLE		= 1 << 2;
+EyeFocus.STATUS_TOP_VISIBLE		= 1 << 3;
+EyeFocus.STATUS_BOTTOM_VISIBLE	= 1 << 4;
+
+EyeFocus.prototype.initElementStatuses = function() {
+	this.elementStatuses = {};
+	for (var i = 0; i < this.elements.length; i++) {
+		this.elementStatuses[i] = EyeFocus.STATUS_UNKNOWN;
+	}
+};
+
+EyeFocus.prototype.detectElementStatuses = function() {
+	this.prevElementStatuses = this.elementStatuses;
+	this.elementStatuses = {};
 	this.isElementVisibleCallCount = 0;
 	this.visibleElements = [];
+	
+	//figure out starting index
 	var startIdx = 0;
 	if (this.firstVisibleElementIdx !== null && this.firstVisibleElementIdx > 0) {
 		startIdx = this.firstVisibleElementIdx - 1;
-	} else {
-		console.log('warning! starting at index 0.');
 	}
 	this.firstVisibleElementIdx = null;
-	var callCount = 0;
+	
+	//check for changed statuses
 	var stopChecking = false;
 	for (var i = startIdx; i < this.elements.length; i++) {
 		if (!stopChecking && this.isElementVisible(this.elements[i])) {
+			//this is used to determine top and bottom visible elements later
+			//and also to track if any visible elements have been found
+			this.visibleElements.push(this.elements[i]);
+			this.elementStatuses[i] = EyeFocus.STATUS_VISIBLE;
+
+			//this is used to determine a more efficient start index
 			if (this.firstVisibleElementIdx == null) {
 				this.firstVisibleElementIdx = i;
+				this.elementStatuses[i] |= EyeFocus.STATUS_TOP_VISIBLE;
 			}
-			this.visibleElements.push(this.elements[i]);
 		} else {
-			this.jQuery(this.elements).trigger('not-visible');
-			if (!stopChecking && this.visibleElements.length > 0) {
-				stopChecking = true;
+			this.elementStatuses[i] = EyeFocus.STATUS_NOT_VISIBLE;
+			//this.jQuery(this.elements).trigger('not-visible');
+			if (this.visibleElements.length > 0) {
+				this.elementStatuses[i-1] |= EyeFocus.STATUS_BOTTOM_VISIBLE;
+				break;
 			}
 		}
 	}
-	//console.log('Call Count: ' + this.isElementVisibleCallCount);
-	if (this.visibleElements.length > 0) {
-		for (var i = 0; i < this.visibleElements.length; i++) {
-			this.jQuery(this.visibleElements[i]).trigger('visible');
+	
+	//anything that doesn't have a status, set status to NOT_VISIBLE.
+	//also, trigger events for any changes.
+	var cnt = 0;
+	for (var i = 0; i < this.elements.length; i++) {
+		if (typeof(this.elementStatuses[i]) === 'undefined') {
+			this.elementStatuses[i] = EyeFocus.STATUS_NOT_VISIBLE;
+			cnt++;
 		}
-		this.jQuery(this.visibleElements[0]).trigger('top-visible');
-		this.jQuery(this.visibleElements[this.visibleElements.length-1]).trigger('bottom-visible');
+		if (this.elementStatuses[i] !== this.prevElementStatuses[i]) {
+			this.jQuery(this.elements[i]).trigger('visibility-status-change', [this.elementStatuses[i]]);
+		}
 	}
 };
 

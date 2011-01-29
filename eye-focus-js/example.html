@@ -5,15 +5,19 @@
 <script type="text/javascript">
 jQuery(document).ready(function(){
 	var pEls = document.getElementsByTagName('p');
-	jQuery(pEls).bind('not-visible', function(evt) {
-		jQuery(evt.target).removeClass('active');
-		jQuery(evt.target).removeClass('mainactive');
-	});
-	jQuery(pEls).bind('visible', function(evt) {
-		jQuery(evt.target).addClass('active');
-	});
-	jQuery(pEls).bind('bottom-visible', function(evt) {
-		jQuery(evt.target).addClass('mainactive');
+	jQuery(pEls).bind('visibility-status-change', function(evt, visibilityStatus) {
+		if (visibilityStatus & EyeFocus.STATUS_VISIBLE) {
+			if (visibilityStatus & EyeFocus.STATUS_BOTTOM_VISIBLE) {
+				jQuery(evt.target).removeClass('active');
+				jQuery(evt.target).addClass('mainactive');
+			} else {
+				jQuery(evt.target).removeClass('mainactive');
+				jQuery(evt.target).addClass('active');
+			}
+		} else {
+			jQuery(evt.target).removeClass('active');
+			jQuery(evt.target).removeClass('mainactive');
+		}
 	});
 	new EyeFocus(pEls);
 });
