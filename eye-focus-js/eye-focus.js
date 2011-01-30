@@ -1,19 +1,14 @@
 /**
  * Provides the EyeFocus object. This object tracks the visibility of a provided set of
- * elements. When an element becomes visible, the "visible" event is triggered on that
- * element. Here are the events triggered:
- *
- *	visible:		when the element is visible
- *	not-visible:	when the element is not visible
- *	top-visible:	the visible element that is highest on the page
- *	bottom-visible:	the visible element that is lowest on the page
- *
- * All events are triggered at the time of the document's scroll event. Currently, events
- * are called every time, not just deltas (e.g. if an element is already visible, the visible
- * event will be called on it again on the next scroll).
+ * elements. Visibility is tracked very specifically (visible, partially visible, first
+ * visible, etc. When the visibility of an element changes, the 'visibility-status-change'
+ * event is fired and an instance of EyeFocus.VisibilityStatus (see below) is passed to
+ * the handler. See documentation for EyeFocus.VisibilityStatus for what visibility
+ * information is available.
  *
  * Author: Dustin McQuay
  * License: MIT
+ * Version: 0.0.1
  */
 
 EyeFocus = function(elements) {
@@ -26,6 +21,12 @@ EyeFocus = function(elements) {
 			throw "undefined element in the array at index " + i;
 		}
 	}
+	if (typeof(jQuery) === 'undefined') {
+		throw "This library depends on jQuery. Please load jQuery first.";
+	}
+	if (typeof(window) === 'undefined') {
+		throw "This library only works in a browser. This doesn't look like a browser because 'window' is undefined.";
+	}
 	this.jQuery = jQuery;
 	this.elements = elements;
 	this.initVisibilityStatuses();
@@ -34,6 +35,8 @@ EyeFocus = function(elements) {
 		self.detectElementStatuses();
 	});
 };
+
+EyeFocus.VERSION = '0.0.1';
 
 EyeFocus.prototype.initVisibilityStatuses = function() {
 	this.prevVisibilityStatuses = this.visibilityStatuses;
@@ -166,7 +169,21 @@ EyeFocus.prototype.setInitialVisibilityStatus = function(elem, visibilityStatus)
 
 
 
-
+/**
+ * EyeFocus.VisibilityStatus is a simple object that tracks the visibility of a given element.
+ * Here are the possible statuses with descriptions:
+ * 
+ * visible - 100% of the element is visible
+ * firstVisible - The highest visible element on the page
+ * lastVisible - The lowest visible element on the page
+ * partiallyVisible - Some part of this element is visible, but not all
+ * firstPartiallyVisible - The highest partially visible element on the page
+ * lastPartiallyVisible - The lowest partially visible element on the page
+ * partiallyVisibleWithNoVisibleSiblings - This element is partially visible and no elements are 100% visible
+ *
+ * To check a visibility status, prepend the status with "is" and call it as a function
+ * (e.g. instance.isFirstPartiallyVisible()).
+ */
 EyeFocus.VisibilityStatus = function() {};
 
 EyeFocus.VisibilityStatus.STATUS_VISIBLE									= 1 << 1;
