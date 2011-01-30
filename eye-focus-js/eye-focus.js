@@ -30,7 +30,7 @@ EyeFocus = function(elements) {
 	this.elements = elements;
 	this.initElementStatuses();
 	this.detectElementStatuses();
-	this.jQuery(document).scroll(function() {
+	this.jQuery(window).scroll(function() {
 		self.detectElementStatuses();
 	});
 };
