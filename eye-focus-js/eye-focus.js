@@ -28,18 +28,24 @@ EyeFocus = function(elements) {
 	}
 	this.jQuery = jQuery;
 	this.elements = elements;
-	this.initElementStatuses();
+	this.initVisibilityStatuses();
 	this.detectElementStatuses();
 	this.jQuery(window).scroll(function() {
 		self.detectElementStatuses();
 	});
 };
 
-EyeFocus.prototype.initElementStatuses = function() {
+EyeFocus.prototype.initVisibilityStatuses = function() {
+	this.prevVisibilityStatuses = this.visibilityStatuses;
 	this.visibilityStatuses = {};
 	for (var i = 0; i < this.elements.length; i++) {
 		this.visibilityStatuses[i] = new EyeFocus.VisibilityStatus();
 	}
+};
+
+EyeFocus.prototype.calcDocViewOffsets = function() {
+	this.docViewTop = this.jQuery(window).scrollTop();
+	this.docViewBottom = this.docViewTop + this.jQuery(window).height();
 };
 
 EyeFocus.prototype.determineStartIndex = function() {
@@ -59,15 +65,13 @@ EyeFocus.prototype.determineStartIndex = function() {
 };
 
 EyeFocus.prototype.detectElementStatuses = function() {
-	this.prevVisibilityStatuses = this.visibilityStatuses;
-	this.initElementStatuses();
-	this.isElementVisibleCallCount = 0;
-	this.visibleElements = [];
+	this.initVisibilityStatuses();
+	this.calcDocViewOffsets();
 	
-	var startIdx = this.determineStartIndex();
+	//search for visible elements
 	this.firstVisibleElementIdx = null;
-	
-	//check for changed statuses
+	this.visibleElements = [];
+	var startIdx = this.determineStartIndex();
 	var stopChecking = false;
 	for (var i = startIdx; i < this.elements.length; i++) {
 		this.setInitialVisibilityStatus(this.elements[i], this.visibilityStatuses[i]);
@@ -76,7 +80,6 @@ EyeFocus.prototype.detectElementStatuses = function() {
 			//this is used to determine top and bottom visible elements later
 			//and also to track if any visible elements have been found
 			this.visibleElements.push(this.elements[i]);
-			this.visibilityStatuses[i].isVisible(true);
 
 			//this is used to determine a more efficient start index
 			if (this.firstVisibleElementIdx == null) {
@@ -99,7 +102,6 @@ EyeFocus.prototype.detectElementStatuses = function() {
 	}
 	
 	//trigger events for any changes.
-	var cnt = 0;
 	for (var i = 0; i < this.elements.length; i++) {
 		if (!this.visibilityStatuses[i].equals(this.prevVisibilityStatuses[i])) {
 			this.jQuery(this.elements[i]).trigger('visibility-status-change', [this.visibilityStatuses[i]]);
@@ -110,14 +112,12 @@ EyeFocus.prototype.detectElementStatuses = function() {
 EyeFocus.prototype.setInitialVisibilityStatus = function(elem, visibilityStatus) {
 	var elemTop = this.jQuery(elem).offset().top;
 	var elemBottom = elemTop + this.jQuery(elem).height();
-	var docViewTop = this.jQuery(window).scrollTop();
-	var docViewBottom = docViewTop + this.jQuery(window).height();
 	
-	var isVisible = ((elemBottom >= docViewTop) && (elemTop <= docViewBottom)
-		&& (elemBottom <= docViewBottom) &&  (elemTop >= docViewTop));
+	var isVisible = ((elemBottom >= this.docViewTop) && (elemTop <= this.docViewBottom)
+		&& (elemBottom <= this.docViewBottom) &&  (elemTop >= this.docViewTop));
 	if (isVisible) visibilityStatus.isVisible(true);
 	
-	var isPartiallyVisible = elemBottom >= docViewTop || elemTop <= docViewBottom;
+	var isPartiallyVisible = elemBottom >= this.docViewTop || elemTop <= this.docViewBottom;
 	if (isPartiallyVisible) visibilityStatus.isPartiallyVisible(true);
 };
 

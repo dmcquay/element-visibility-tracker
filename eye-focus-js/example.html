@@ -31,6 +31,7 @@ jQuery(document).ready(function(){
 </script>
 <style type="text/css">
 p { width: 300px; height: 50px; border: 1px solid black; }
+p.large { height: 1200px; }
 p.visible { border: 1px solid red; }
 p.visibleBottom { border: 2px solid blue; }
 p.visibleTop { border: 2px solid green; }
@@ -39,7 +40,11 @@ p.visibleTop { border: 2px solid green; }
 <body>
 <script type='text/javascript'>
 	for (var i = 1; i <= 100; i++) {
-		document.write('<p>' + i + '</p>');
+		if (i == 10 || i == 11) {
+			document.write('<p class="large">' + i + '</p>');
+		} else {
+			document.write('<p>' + i + '</p>');
+		}
 	}
 </script>
 </body>
