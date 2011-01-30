@@ -42,17 +42,29 @@ EyeFocus.prototype.initElementStatuses = function() {
 	}
 };
 
+EyeFocus.prototype.determineStartIndex = function() {
+	var startIdx = 0;
+	if (this.firstVisibleElementIdx !== null && this.firstVisibleElementIdx > 0) {
+		startIdx = this.firstVisibleElementIdx - 1;
+	}
+	while (true) {
+		this.setInitialVisibilityStatus(this.elements[startIdx], this.visibilityStatuses[startIdx]);
+		if (this.visibilityStatuses[startIdx].isVisible() && startIdx > 0) {
+			startIdx--;
+		} else {
+			break;
+		}
+	}
+	return startIdx;
+};
+
 EyeFocus.prototype.detectElementStatuses = function() {
 	this.prevVisibilityStatuses = this.visibilityStatuses;
 	this.initElementStatuses();
 	this.isElementVisibleCallCount = 0;
 	this.visibleElements = [];
 	
-	//figure out starting index
-	var startIdx = 0;
-	if (this.firstVisibleElementIdx !== null && this.firstVisibleElementIdx > 0) {
-		startIdx = this.firstVisibleElementIdx - 1;
-	}
+	var startIdx = this.determineStartIndex();
 	this.firstVisibleElementIdx = null;
 	
 	//check for changed statuses
@@ -105,9 +117,8 @@ EyeFocus.prototype.setInitialVisibilityStatus = function(elem, visibilityStatus)
 		&& (elemBottom <= docViewBottom) &&  (elemTop >= docViewTop));
 	if (isVisible) visibilityStatus.isVisible(true);
 	
-	
 	var isPartiallyVisible = elemBottom >= docViewTop || elemTop <= docViewBottom;
-	visibilityStatus.isPartiallyVisible(isPartiallyVisible);
+	if (isPartiallyVisible) visibilityStatus.isPartiallyVisible(true);
 };
 
 
