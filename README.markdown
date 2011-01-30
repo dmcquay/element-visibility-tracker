@@ -25,14 +25,14 @@ To check a visibility status, prepend the status with "is" and call it as a func
 
 #Example
 
- jQuery(document).ready(function(){
- 	var pEls = document.getElementsByTagName('p');
- 	jQuery(pEls).bind('visibility-status-change', function(evt, visibilityStatus) {
- 		if (visibilityStatus.isLastVisible()) {
- 			jQuery(evt.target).addClass('lastVisible');
- 		} else {
- 			jQuery(evt.target).removeClass('lastVisible');
- 		}
- 	});
- 	new VisibilityTracker(pEls);
- });
+    jQuery(document).ready(function(){
+        var pEls = document.getElementsByTagName('p');
+        jQuery(pEls).bind('visibility-status-change', function(evt, visibilityStatus) {
+            if (visibilityStatus.isLastVisible()) {
+                jQuery(evt.target).addClass('lastVisible');
+            } else {
+                jQuery(evt.target).removeClass('lastVisible');
+            }
+        });
+        new VisibilityTracker(pEls);
+    });
