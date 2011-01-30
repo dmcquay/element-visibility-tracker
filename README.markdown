@@ -1,4 +1,4 @@
-=EyeFocus
+#EyeFocus
 
 Provides the EyeFocus object. This object tracks the visibility of a provided set of
 elements. Visibility is tracked very specifically (visible, partially visible, first
@@ -7,7 +7,7 @@ event is fired and an instance of EyeFocus.VisibilityStatus (see below) is passe
 the handler. See documentation for EyeFocus.VisibilityStatus for what visibility
 information is available.
 
-=EyeFocus.VisibilityStatus
+#EyeFocus.VisibilityStatus
 
 EyeFocus.VisibilityStatus is a simple object that tracks the visibility of a given element.
 Here are the possible statuses with descriptions:
@@ -23,16 +23,16 @@ Here are the possible statuses with descriptions:
 To check a visibility status, prepend the status with "is" and call it as a function
 (e.g. instance.isFirstPartiallyVisible()).
 
-=Example
+#Example
 
-jQuery(document).ready(function(){
-	var pEls = document.getElementsByTagName('p');
-	jQuery(pEls).bind('visibility-status-change', function(evt, visibilityStatus) {
-		if (visibilityStatus.isLastVisible()) {
-			jQuery(evt.target).addClass('lastVisible');
-		} else {
-			jQuery(evt.target).removeClass('lastVisible');
-		}
-	});
-	new EyeFocus(pEls);
-});
+ jQuery(document).ready(function(){
+ 	var pEls = document.getElementsByTagName('p');
+ 	jQuery(pEls).bind('visibility-status-change', function(evt, visibilityStatus) {
+ 		if (visibilityStatus.isLastVisible()) {
+ 			jQuery(evt.target).addClass('lastVisible');
+ 		} else {
+ 			jQuery(evt.target).removeClass('lastVisible');
+ 		}
+ 	});
+ 	new EyeFocus(pEls);
+ });
