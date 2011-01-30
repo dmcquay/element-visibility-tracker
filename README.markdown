@@ -1,24 +1,24 @@
-#EyeFocus
+#VisibilityTracker
 
-Provides the EyeFocus object. This object tracks the visibility of a provided set of
+Provides the VisibilityTracker object. This object tracks the visibility of a provided set of
 elements. Visibility is tracked very specifically (visible, partially visible, first
 visible, etc. When the visibility of an element changes, the 'visibility-status-change'
-event is fired and an instance of EyeFocus.VisibilityStatus (see below) is passed to
-the handler. See documentation for EyeFocus.VisibilityStatus for what visibility
+event is fired and an instance of VisibilityTracker.VisibilityStatus (see below) is passed to
+the handler. See documentation for VisibilityTracker.VisibilityStatus for what visibility
 information is available.
 
-#EyeFocus.VisibilityStatus
+#VisibilityStatus
 
-EyeFocus.VisibilityStatus is a simple object that tracks the visibility of a given element.
+VisibilityStatus is a simple object that tracks the visibility of a given element.
 Here are the possible statuses with descriptions:
  
-*visible - 100% of the element is visible
-*firstVisible - The highest visible element on the page
-*lastVisible - The lowest visible element on the page
-*partiallyVisible - Some part of this element is visible, but not all
-*firstPartiallyVisible - The highest partially visible element on the page
-*lastPartiallyVisible - The lowest partially visible element on the page
-*partiallyVisibleWithNoVisibleSiblings - This element is partially visible and no elements are 100% visible
+ * visible - 100% of the element is visible
+ * firstVisible - The highest visible element on the page
+ * lastVisible - The lowest visible element on the page
+ * partiallyVisible - Some part of this element is visible, but not all
+ * firstPartiallyVisible - The highest partially visible element on the page
+ * lastPartiallyVisible - The lowest partially visible element on the page
+ * partiallyVisibleWithNoVisibleSiblings - This element is partially visible and no elements are 100% visible
 
 To check a visibility status, prepend the status with "is" and call it as a function
 (e.g. instance.isFirstPartiallyVisible()).
@@ -34,5 +34,5 @@ To check a visibility status, prepend the status with "is" and call it as a func
  			jQuery(evt.target).removeClass('lastVisible');
  		}
  	});
- 	new EyeFocus(pEls);
+ 	new VisibilityTracker(pEls);
  });
