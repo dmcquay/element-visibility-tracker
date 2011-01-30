@@ -7,21 +7,35 @@ jQuery(document).ready(function(){
 	var pEls = document.getElementsByTagName('p');
 	jQuery(pEls).bind('visibility-status-change', function(evt, visibilityStatus) {
 		if (visibilityStatus.isVisible()) {
-			if (visibilityStatus.isHighestVisible()) {
+			if (visibilityStatus.isFirstVisible()) {
 				jQuery(evt.target).removeClass('visible');
+				jQuery(evt.target).removeClass('partiallyVisible');
 				jQuery(evt.target).addClass('visibleTop');
 				jQuery(evt.target).removeClass('visibleBottom');
-			} else if (visibilityStatus.isLowestVisible()) {
+			} else if (visibilityStatus.isLastVisible()) {
 				jQuery(evt.target).removeClass('visible');
+				jQuery(evt.target).removeClass('partiallyVisible');
 				jQuery(evt.target).removeClass('visibleTop');
 				jQuery(evt.target).addClass('visibleBottom');
 			} else {
 				jQuery(evt.target).addClass('visible');
+				jQuery(evt.target).removeClass('partiallyVisible');
 				jQuery(evt.target).removeClass('visibleTop');
 				jQuery(evt.target).removeClass('visibleBottom');
 			}
+		} else if (visibilityStatus.isPartiallyVisibleWithNoVisibleSiblings() && visibilityStatus.isLastPartiallyVisible()) {
+			jQuery(evt.target).removeClass('visible');
+			jQuery(evt.target).removeClass('partiallyVisible');
+			jQuery(evt.target).removeClass('visibleTop');
+			jQuery(evt.target).addClass('visibleBottom');
+		} else if (visibilityStatus.isPartiallyVisible()) {
+			jQuery(evt.target).removeClass('visible');
+			jQuery(evt.target).addClass('partiallyVisible');
+			jQuery(evt.target).removeClass('visibleTop');
+			jQuery(evt.target).removeClass('visibleBottom');
 		} else {
 			jQuery(evt.target).removeClass('visible');
+			jQuery(evt.target).removeClass('partiallyVisible');
 			jQuery(evt.target).removeClass('visibleTop');
 			jQuery(evt.target).removeClass('visibleBottom');
 		}
@@ -33,6 +47,7 @@ jQuery(document).ready(function(){
 p { width: 300px; height: 50px; border: 1px solid black; }
 p.large { height: 1200px; }
 p.visible { border: 1px solid red; }
+p.partiallyVisible { border: 1px solid orange; }
 p.visibleBottom { border: 2px solid blue; }
 p.visibleTop { border: 2px solid green; }
 </style>

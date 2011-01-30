@@ -49,64 +49,106 @@ EyeFocus.prototype.calcDocViewOffsets = function() {
 };
 
 EyeFocus.prototype.determineStartIndex = function() {
-	var startIdx = 0;
-	if (this.firstVisibleElementIdx !== null && this.firstVisibleElementIdx > 0) {
-		startIdx = this.firstVisibleElementIdx - 1;
+	this.startIdx = 0;
+	if (typeof(this.prevVisibilityStatuses) === 'undefined' || this.prevVisibilityStatuses == null || this.prevVisibilityStatuses.length == 0) {		
+		return;
 	}
+	for (var i = 0; i < this.elements.length; i++) {
+		if (this.prevVisibilityStatuses[i].isVisible() || this.prevVisibilityStatuses[i].isPartiallyVisible()) {
+			this.startIdx = i;
+			break;
+		}
+	}
+	//TODO: populating these visibility statuses seems like a "side effect" not communicated well by the func name
 	while (true) {
-		this.setInitialVisibilityStatus(this.elements[startIdx], this.visibilityStatuses[startIdx]);
-		if (this.visibilityStatuses[startIdx].isVisible() && startIdx > 0) {
-			startIdx--;
+		this.setInitialVisibilityStatus(this.elements[this.startIdx], this.visibilityStatuses[this.startIdx]);
+		if (this.visibilityStatuses[this.startIdx].isPartiallyVisible() && this.startIdx > 0) {
+			this.startIdx--;
 		} else {
 			break;
 		}
 	}
-	return startIdx;
 };
 
-EyeFocus.prototype.detectElementStatuses = function() {
-	this.initVisibilityStatuses();
-	this.calcDocViewOffsets();
-	
-	//search for visible elements
-	this.firstVisibleElementIdx = null;
-	this.visibleElements = [];
-	var startIdx = this.determineStartIndex();
-	var stopChecking = false;
-	for (var i = startIdx; i < this.elements.length; i++) {
+EyeFocus.prototype.searchForVisibleElements = function() {
+	this.visibleElementsFound = false;
+	var foundSomethingAtLeastPartiallyVisible = false;
+	for (var i = this.startIdx; i < this.elements.length; i++) {
 		this.setInitialVisibilityStatus(this.elements[i], this.visibilityStatuses[i]);
-		if (!stopChecking && this.visibilityStatuses[i].isVisible()) {
-			
-			//this is used to determine top and bottom visible elements later
-			//and also to track if any visible elements have been found
-			this.visibleElements.push(this.elements[i]);
+		if (this.visibilityStatuses[i].isPartiallyVisible() || this.visibilityStatuses[i].isVisible()) {
+			foundSomethingAtLeastPartiallyVisible = true;
+			if (this.visibilityStatuses[i].isVisible()) {
+				this.visibleElementsFound = true;
+			}
+		} else if (foundSomethingAtLeastPartiallyVisible) {
+			break;
+		}
+	}
+};
 
-			//this is used to determine a more efficient start index
-			if (this.firstVisibleElementIdx == null) {
-				this.firstVisibleElementIdx = i;
-				this.visibilityStatuses[i].isHighestVisible(true);
-			}
-			
-			//normally we catch the bottom visible element in the else
-			//clause below, but if it is the very last element, then it
-			//won't get caught there.
-			if (i === this.elements.length - 1) {
-				this.visibilityStatuses[i].isLowestVisible(true);
-			}
-		} else {
-			if (this.visibleElements.length > 0) {
-				this.visibilityStatuses[i-1].isLowestVisible(true);
-				break;
+EyeFocus.prototype.searchForFirstElements = function() {
+	var firstVisibleFound = false;
+	var firstPartiallyVisibleFound = false;
+	for (var i = this.startIdx; i < this.elements.length; i++) {
+		if (!firstVisibleFound && this.visibilityStatuses[i].isVisible()) {
+			this.visibilityStatuses[i].isFirstVisible(true);
+			firstVisibleFound = true;
+		}
+		if (!firstPartiallyVisibleFound && this.visibilityStatuses[i].isPartiallyVisible()) {
+			this.visibilityStatuses[i].isFirstPartiallyVisible(true);
+			firstPartiallyVisibleFound = true;
+		}
+		if (firstVisibleFound && firstPartiallyVisibleFound) {
+			break;
+		}
+	}
+};
+
+EyeFocus.prototype.searchForLastElements = function() {
+	var lastVisibleFound = false;
+	var lastPartiallyVisibleFound = false;
+	for (var i = this.elements.length - 1; i >= 0; i--) {
+		if (!lastVisibleFound && this.visibilityStatuses[i].isVisible()) {
+			this.visibilityStatuses[i].isLastVisible(true);
+			lastVisibleFound = true;
+		}
+		if (!lastPartiallyVisibleFound && this.visibilityStatuses[i].isPartiallyVisible()) {
+			this.visibilityStatuses[i].isLastPartiallyVisible(true);
+			lastPartiallyVisibleFound = true;
+		}
+		if (lastVisibleFound && lastPartiallyVisibleFound) {
+			break;
+		}
+	}
+};
+
+EyeFocus.prototype.setSiblingStatusForPartiallyVisibleElements = function() {
+	if (!this.visibleElementsFound) {
+		for (var i = this.startIdx; i < this.elements.length; i++) {
+			if (this.visibilityStatuses[i].isPartiallyVisible()) {
+				this.visibilityStatuses[i].isPartiallyVisibleWithNoVisibleSiblings(true);
 			}
 		}
 	}
-	
-	//trigger events for any changes.
+};
+
+EyeFocus.prototype.triggerStatusChangeEvents = function() {
 	for (var i = 0; i < this.elements.length; i++) {
 		if (!this.visibilityStatuses[i].equals(this.prevVisibilityStatuses[i])) {
 			this.jQuery(this.elements[i]).trigger('visibility-status-change', [this.visibilityStatuses[i]]);
 		}
 	}
+};
+
+EyeFocus.prototype.detectElementStatuses = function() {
+	this.initVisibilityStatuses();
+	this.calcDocViewOffsets();
+	this.determineStartIndex();
+	this.searchForVisibleElements();
+	this.searchForFirstElements();
+	this.searchForLastElements();
+	this.setSiblingStatusForPartiallyVisibleElements();
+	this.triggerStatusChangeEvents();
 };
 
 EyeFocus.prototype.setInitialVisibilityStatus = function(elem, visibilityStatus) {
@@ -117,7 +159,7 @@ EyeFocus.prototype.setInitialVisibilityStatus = function(elem, visibilityStatus)
 		&& (elemBottom <= this.docViewBottom) &&  (elemTop >= this.docViewTop));
 	if (isVisible) visibilityStatus.isVisible(true);
 	
-	var isPartiallyVisible = elemBottom >= this.docViewTop || elemTop <= this.docViewBottom;
+	var isPartiallyVisible = elemBottom >= this.docViewTop && elemTop <= this.docViewBottom;
 	if (isPartiallyVisible) visibilityStatus.isPartiallyVisible(true);
 };
 
@@ -128,35 +170,35 @@ EyeFocus.prototype.setInitialVisibilityStatus = function(elem, visibilityStatus)
 EyeFocus.VisibilityStatus = function() {};
 
 EyeFocus.VisibilityStatus.STATUS_VISIBLE									= 1 << 1;
-EyeFocus.VisibilityStatus.STATUS_HIGHEST_VISIBLE							= 1 << 2;
-EyeFocus.VisibilityStatus.STATUS_LOWEST_VISIBLE								= 1 << 3;
+EyeFocus.VisibilityStatus.STATUS_FIRST_VISIBLE								= 1 << 2;
+EyeFocus.VisibilityStatus.STATUS_LAST_VISIBLE								= 1 << 3;
 EyeFocus.VisibilityStatus.STATUS_PARTIALLY_VISIBLE							= 1 << 4;
-EyeFocus.VisibilityStatus.STATUS_HIGHEST_PARTIALLY_VISIBLE					= 1 << 5;
-EyeFocus.VisibilityStatus.STATUS_HIGHEST_PARTIALLY_VISIBLE					= 1 << 6;
+EyeFocus.VisibilityStatus.STATUS_FIRST_PARTIALLY_VISIBLE					= 1 << 5;
+EyeFocus.VisibilityStatus.STATUS_LAST_PARTIALLY_VISIBLE						= 1 << 6;
 EyeFocus.VisibilityStatus.STATUS_PARTIALLY_VISIBLE_WITH_NO_VISIBLE_SIBLINGS	= 1 << 7;
 
 EyeFocus.VisibilityStatus.prototype.isVisible = function(value) {
 	return this.checkOrSetStatus(value, EyeFocus.VisibilityStatus.STATUS_VISIBLE);
 };
 
-EyeFocus.VisibilityStatus.prototype.isHighestVisible = function(value) {
-	return this.checkOrSetStatus(value, EyeFocus.VisibilityStatus.STATUS_HIGHEST_VISIBLE);
+EyeFocus.VisibilityStatus.prototype.isFirstVisible = function(value) {
+	return this.checkOrSetStatus(value, EyeFocus.VisibilityStatus.STATUS_FIRST_VISIBLE);
 };
 
-EyeFocus.VisibilityStatus.prototype.isLowestVisible = function(value) {
-	return this.checkOrSetStatus(value, EyeFocus.VisibilityStatus.STATUS_LOWEST_VISIBLE);
+EyeFocus.VisibilityStatus.prototype.isLastVisible = function(value) {
+	return this.checkOrSetStatus(value, EyeFocus.VisibilityStatus.STATUS_LAST_VISIBLE);
 };
 
 EyeFocus.VisibilityStatus.prototype.isPartiallyVisible = function(value) {
 	return this.checkOrSetStatus(value, EyeFocus.VisibilityStatus.STATUS_PARTIALLY_VISIBLE);
 };
 
-EyeFocus.VisibilityStatus.prototype.isHighestPartiallyVisible = function(value) {
-	return this.checkOrSetStatus(value, EyeFocus.VisibilityStatus.STATUS_HIGHEST_PARTIALLY_VISIBLE);
+EyeFocus.VisibilityStatus.prototype.isFirstPartiallyVisible = function(value) {
+	return this.checkOrSetStatus(value, EyeFocus.VisibilityStatus.STATUS_FIRST_PARTIALLY_VISIBLE);
 };
 
-EyeFocus.VisibilityStatus.prototype.isLowestPartiallyVisible = function(value) {
-	return this.checkOrSetStatus(value, EyeFocus.VisibilityStatus.STATUS_LOWEST_PARTIALLY_VISIBLE);
+EyeFocus.VisibilityStatus.prototype.isLastPartiallyVisible = function(value) {
+	return this.checkOrSetStatus(value, EyeFocus.VisibilityStatus.STATUS_LAST_PARTIALLY_VISIBLE);
 };
 
 EyeFocus.VisibilityStatus.prototype.isPartiallyVisibleWithNoVisibleSiblings = function(value) {
