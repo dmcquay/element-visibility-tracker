@@ -10,7 +10,10 @@
 <link href="syntaxhighlighter/styles/shThemeDefault.css" rel="stylesheet" type="text/css" />
 
 <style type="text/css">
+body { width: 660px; }
 h3 { height: 40px; }
+#links { margin: 0; padding: 0; position: fixed; top: 50px; left: 700px; border: 2px dashed blue; padding: 10px; list-style-type: none; }
+#links li { margin-bottom: 5px; }
 #examples div { float: left; margin-right: 20px; width: 300px; }
 .clearb { clear: both; }
 </style>
@@ -29,13 +32,15 @@ again, and finally is no longer visible.</p>
 <pre class="brush: js">
 jQuery(document).ready(function(){
     var pEls = document.getElementsByTagName('p');
-    jQuery(pEls).bind('visibility-status-change', function(evt, visibilityStatus) {
-        if (visibilityStatus.isLastVisible()) {
-            jQuery(evt.target).addClass('lastVisible');
-        } else {
-            jQuery(evt.target).removeClass('lastVisible');
-        }
-    });
+    jQuery(pEls).bind('visibility-status-change',
+	function(evt, visibilityStatus) {
+		if (visibilityStatus.isLastVisible()) {
+		    jQuery(evt.target).addClass('lastVisible');
+		} else {
+		    jQuery(evt.target).removeClass('lastVisible');
+		}
+	    }
+	);
     new VisibilityTracker(pEls);
 });
 </pre>
@@ -113,6 +118,12 @@ methods:</p>
 	<div class="clearb"></div>
 
 </div>
+
+<ul id="links">
+	<li><a href="https://github.com/dmcquay/element-visibility-tracker/zipball/master">Download</a></li>
+	<li><a href="https://github.com/dmcquay/element-visibility-tracker">Source (git)</a></li>
+	<li>Code by <a href="http://www.synchrosinteractive.com/">Synchros Interactive, LLC</a></li>
+</ul>
 
 <!-- syntax highlighter -->
 <script type="text/javascript">
