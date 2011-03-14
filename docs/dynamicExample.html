@@ -1,0 +1,37 @@
+<html>
+<head>
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.4.4.js"></script>
+<script type="text/javascript" src="../visibilityTracker.js"></script>
+<script type="text/javascript">
+    jQuery(document).ready(function(){
+        var pEls = document.getElementsByTagName('p');
+	var activeStatus = document.location.search.match(/[\?&]activeStatus=([^&$]*)/)[1];
+        jQuery(pEls).bind('visibility-status-change', function(evt, visibilityStatus) {
+            if (visibilityStatus[activeStatus]()) {
+                jQuery(evt.target).addClass('active');
+            } else {
+                jQuery(evt.target).removeClass('active');
+            }
+        });
+        new VisibilityTracker(pEls);
+    });
+</script>
+<style type="text/css">
+p { width: 250px; height: 30px; border: 1px solid black; }
+p.large { height: 400px; }
+p.active { border: 1px solid red; background: orange; }
+</style>
+</head>
+<body>
+<script type='text/javascript'>
+	for (var i = 1; i <= 20; i++) {
+		if (i === 5) {
+			document.write('<p class="large">' + i + '</p>');
+		} else {
+			document.write('<p>' + i + '</p>');
+		}
+	}
+</script>
+</body>
+</html>
+

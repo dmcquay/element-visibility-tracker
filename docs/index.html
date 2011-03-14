@@ -1,0 +1,122 @@
+<html>
+<head>
+<title>Element Visibility Tracker - Docs</title>
+
+<!-- syntax highlighter -->
+<script type="text/javascript" src="js/xregexp-min.js"></script>
+<script type="text/javascript" src="syntaxhighlighter/src/shCore.js"></script>
+<script type="text/javascript" src="syntaxhighlighter/scripts/shBrushJScript.js"></script>
+<link href="syntaxhighlighter/styles/shCore.css" rel="stylesheet" type="text/css" />
+<link href="syntaxhighlighter/styles/shThemeDefault.css" rel="stylesheet" type="text/css" />
+
+<style type="text/css">
+h3 { height: 40px; }
+#examples div { float: left; margin-right: 20px; width: 300px; }
+.clearb { clear: both; }
+</style>
+</head>
+<body>
+<h1>Element Visibility Tracker</h1>
+
+<p>This is a simple jQuery plugin that makes it easy to track the visibility of a set of elements on page.
+In this context, we are not referring to the HTML visible attribute. Instead what this tracks is how
+elements go in and out of the viewport as a user scrolls up and down a page. As the user scrolls down
+the page, a given element will become partially viewable, then fully viewable, then partially viewable
+again, and finally is no longer visible.</p>
+
+<h2>Synopsis</h2>
+
+<pre class="brush: js">
+jQuery(document).ready(function(){
+    var pEls = document.getElementsByTagName('p');
+    jQuery(pEls).bind('visibility-status-change', function(evt, visibilityStatus) {
+        if (visibilityStatus.isLastVisible()) {
+            jQuery(evt.target).addClass('lastVisible');
+        } else {
+            jQuery(evt.target).removeClass('lastVisible');
+        }
+    });
+    new VisibilityTracker(pEls);
+});
+</pre>
+
+<h2>Visibility Status</h2>
+
+<p>The visibility status of an element is communicated using events. Simply listen for the
+'visibility-status-changed' event on a tracked element and your callback will be notified of
+all changes. The callback will be passed an instance of VisiblityStatus which has the following
+methods:</p>
+
+<p><ul>
+<li><strong>isVisible()</strong> - 100% of the element is visible</li>
+<li><strong>isFirstVisible()</strong> - The highest visible element on the page</li>
+<li><strong>isLastVisible()</strong> - The lowest visible element on the page</li>
+<li><strong>isPartiallyVisible()</strong> - Some part of this element is visible, but not all</li>
+<li><strong>isFirstPartiallyVisible()</strong> - The highest partially visible element on the page</li>
+<li><strong>isLastPartiallyVisible()</strong> - The lowest partially visible element on the page</li>
+<li><strong>isPartiallyVisibleWithNoVisibleSiblings()</strong> - This element is partially visible and no elements are 100% visible</li>
+</ul></p>
+
+<p>And here are examples of each of these statuses:</p>
+
+<h2>Visibility Status Examples</h2>
+<div id="examples">
+	<div>
+	<h3>isVisibile()</h3>
+	<iframe src="dynamicExample.html?activeStatus=isVisible" width="300px" height="200px">
+	  <p>Your browser does not support iframes.</p>
+	</iframe>
+	</div>
+
+	<div>
+	<h3>isFirst<wbr>Visibile()</h3>
+	<iframe src="dynamicExample.html?activeStatus=isFirstVisible" width="300px" height="200px">
+	  <p>Your browser does not support iframes.</p>
+	</iframe>
+	</div>
+
+	<div>
+	<h3>isLast<wbr>Visibile()</h3>
+	<iframe src="dynamicExample.html?activeStatus=isLastVisible" width="300px" height="200px">
+	  <p>Your browser does not support iframes.</p>
+	</iframe>
+	</div>
+
+	<div>
+	<h3>isPartially<wbr>Visibile()</h3>
+	<iframe src="dynamicExample.html?activeStatus=isPartiallyVisible" width="300px" height="200px">
+	  <p>Your browser does not support iframes.</p>
+	</iframe>
+	</div>
+
+	<div>
+	<h3>isFirst<wbr>Partially<wbr>Visibile()</h3>
+	<iframe src="dynamicExample.html?activeStatus=isFirstPartiallyVisible" width="300px" height="200px">
+	  <p>Your browser does not support iframes.</p>
+	</iframe>
+	</div>
+
+	<div>
+	<h3>isLast<wbr>Partially<wbr>Visibile()</h3>
+	<iframe src="dynamicExample.html?activeStatus=isLastPartiallyVisible" width="300px" height="200px">
+	  <p>Your browser does not support iframes.</p>
+	</iframe>
+	</div>
+
+	<div>
+	<h3>isPartially<wbr>Visibile<wbr>With<wbr>No<wbr>Visible<wbr>Siblings()</h3>
+	<iframe src="dynamicExample.html?activeStatus=isPartiallyVisibleWithNoVisibleSiblings" width="300px" height="200px">
+	  <p>Your browser does not support iframes.</p>
+	</iframe>
+	</div>
+
+	<div class="clearb"></div>
+
+</div>
+
+<!-- syntax highlighter -->
+<script type="text/javascript">
+     SyntaxHighlighter.all()
+</script>
+</body>
+</html>
