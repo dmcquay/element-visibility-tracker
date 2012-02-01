@@ -2,7 +2,7 @@
 
 Fires an event as elements scroll through the viewport (viewable area of the browser window).
 Read the [VisibilityTracker documentation](http://www.synchrosinteractive.com/element-visibility-tracker/docs/index.html)
-for more inforamtion.
+for more information.
 
 #Synopsis
 
